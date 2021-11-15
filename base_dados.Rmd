@@ -1,0 +1,199 @@
+---
+title: "Bases de dados ecológicos"
+author: "Amanda Luiza"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+---
+
+```{r setup, include=FALSE}
+getwd()
+
+load("C:/Users/amand/OneDrive/Documentos/RStudio/Ecologia numerica/Felipe (GitHub)/GitHub/EcoNum-master/NEwR-2ed_code_data/NEwR2-Data/Doubs.RData")
+```
+
+#Explorando bases de dados ecológicos
+
+12/11/2021 Última atualização: `r Sys.Date()`
+
+
+### **- Primeira atividade**
+
+```{r}
+library("ggplot2")
+library("vegan")
+library("tibble")
+library("tidyverse")
+library("reshape2")
+```
+
+
+#Ex1 (Matriz de presencias e ausências)
+
+Criar a base de dados, modificando os parâmetros do código para atender aos seguintes requisitos:
+
+1. 20 espécies
+2. 8 localidades
+
+```{r}
+set.seed(999) #vai gerar sempre o mesmo resultado com as funções abaixo
+tibble(
+  spec = paste0("sp", 1:20),
+  localA = sample(c(0:1), replace=TRUE, size=20),
+  localB = sample(c(0:1), replace=TRUE, size=20),
+  localC = sample(c(0:1), replace=TRUE, size=20),
+  localD = sample(c(0:1), replace=TRUE, size=20),
+  localE = sample(c(0:1), replace=TRUE, size=20),
+  localF = sample(c(0:1), replace=TRUE, size=20),
+  localG = sample(c(0:1), replace=TRUE, size=20),
+  localH = sample(c(0:1), replace=TRUE, size=20)
+)
+```
+
+
+#Ex2 (Matriz de abundâncias)
+
+Criar a base de dados, modificando os parâmetros do código acima para atender aos seguintes requisitos:
+
+1. 30 espécies
+2. 10 localidades
+3. Abundâncias devem variar entre 0-20 em 5 localidades e entre 0-50 em outras 5 localidades
+
+```{r}
+set.seed(999)
+tibble(
+  spec = paste0("sp", 1:30),
+  
+#Abundâncias variando entre 0-20
+  localA = sample(c(0:20), replace=TRUE, size=30), #vai gerar números aleatórios entre 0 e 20
+  localB = sample(c(0:20), replace=TRUE, size=30),
+  localC = sample(c(0:20), replace=TRUE, size=30),
+  localD = sample(c(0:20), replace=TRUE, size=30),
+  localE = sample(c(0:20), replace=TRUE, size=30),
+
+#Abundâncias variando entre 0-50
+  localF = floor(runif(30, min=0, max=50)), #nesse caso também vai gerar números aleatórios para a abundância
+  localG = floor(runif(30, min=0, max=50)),
+  localH = floor(runif(30, min=0, max=50)),
+  localI = floor(runif(30, min=0, max=50)),
+  localJ = floor(runif(30, min=0, max=50)),
+   
+#Para gerar números aleatórios inteiros, pode-se também usar o comando "sample.int(20,50)"
+)
+```
+
+
+#Ex3 ("summary")
+
+As análises de dados em ecologia começam com uma boa chacagem dos dados, e para isso precisamos saber como se comportam os dados, começando com algumas funções simples como o ‘summary’ (pactote base do R) ou ‘summarize’ (pacote tidyverse). Para isso, pegamos a matriz gerada com as abundâncias e damos a ela um nome, tranformando-a assim num objeto.
+
+
+```{r}
+set.seed(999)
+tibble(
+  spec = paste0("sp", 1:30),
+  
+#Abundâncias variando entre 0-20
+  localA = sample(c(0:20), replace=TRUE, size=30), #vai gerar números aleatórios entre 0 e 20
+  localB = sample(c(0:20), replace=TRUE, size=30),
+  localC = sample(c(0:20), replace=TRUE, size=30),
+  localD = sample(c(0:20), replace=TRUE, size=30),
+  localE = sample(c(0:20), replace=TRUE, size=30),
+
+#Abundâncias variando entre 0-50
+  localF = floor(runif(30, min=0, max=50)), #nesse caso também vai gerar números aleatórios para a abundância
+  localG = floor(runif(30, min=0, max=50)),
+  localH = floor(runif(30, min=0, max=50)),
+  localI = floor(runif(30, min=0, max=50)),
+  localJ = floor(runif(30, min=0, max=50)),
+)-> base1 #o comando "->" aponta para um objeto de nome 'base1'
+
+
+base1 #eis a nossa base agora com as espécies como nomes das linhas
+```
+
+Abaixo temos um exemplo de resumo básico dos dados. Um resumo geral da tabela com a função mais simples do R que mostra apenas alguns “momentos” da distribuição dos dados organizados por colunas, nesse caso, por sítio de estudo.
+
+```{r}
+summary(base1)
+```
+
+###Extraindo os dados
+
+Usando um dos dados biológicos do livro, temos:
+
+1. 27 espécies
+2. 30 amostras
+
+```{r}
+spe #matriz de abundância de espécies de peixes
+```
+
+```{r}
+spa #matriz espacial
+```
+
+```{r}
+env #matriz ambiental
+```
+
+#Ex4
+
+Usando essas bases de dados e plotando alguns gráficos:
+
+**Distribuição das amostras no rio**|
+
+```{r}
+ggplot(spa, aes(X,Y,label = rownames(spa)))+
+  geom_path(color="blue")+
+  #geom_point(size = 2)+
+  geom_text(size = 5)+
+  annotate(geom="text", x=15, y=35, label="Foz",
+              color="red",size = 5)+
+  annotate(geom="text", x=68, y=20, label="Nascente",
+              color="red",size = 5)
+```
+
+
+**Usando a matriz ambiental para plotar variáveis - Quais parâmetros são mais atuantes?**
+
+```{r}
+
+variaveis<-melt(env,  id.vars = , variable.name ="Parâmetros")
+ggplot(variaveis, aes(x=Parâmetros, y=value))+
+  geom_boxplot(color = 'blue')
+
+```
+
+Com esse gráfico, podemos observar que o pH se apresenta como um parâmetro chave, e que pode está atuando no aumento da abundância de espécies, demonstrando dessa forma que as espécies apresentam uma preferência por ambientes básicos e não ácidos.
+
+
+**Onde a distribuição da abundância de espécie coletadas é maior?**
+```{r}
+ggplot(spa, aes(X,Y))+
+  geom_path(color="blue")+
+  geom_point(size = spe$Satr)+
+  annotate(geom="text", x=15, y=35, label="Foz",
+              color="red",size = 5)+
+  annotate(geom="text", x=68, y=20, label="Nascente",
+              color="red",size = 5)
+```
+
+Com o plot, podemos observar que a maior distribuição da abundâcia das espécies estão concentradas na nascente do rio, entre as amostras 1-7 e amostras de 11-17.
+
+
+**E como estão distríbuidas a riqueza de espécies nas amostras da nascente e na foz?**
+
+```{r}
+sit.pres<-apply(spe>0,1,sum)
+plot(sit.pres,type="s",las=1,col="black",main="Gradiente de riqueza da nascente e foz",xlab="Amostras",ylab="Riqueza de espécies")
+text(sit.pres,row.names(spe),cex=.8, col="blue")
+```
+
+Com um gradiente de ocorrência das espécies ao longo das amostras, notamos que a amostra 29 (presente na foz do rio) apresenta a maior abundância no número de espécies de peixes, com o total de 25 espécies. Enquanto que a amostra com a menor abundância de espécies é a amostra 8 (nascente do rio), que não foram encontrados espécies.
+
+
