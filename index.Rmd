@@ -1,5 +1,5 @@
 ---
-title: "MyLabJournal"
+title: "Ecologia numérica 2020.1"
 output: html_document
 ---
 
@@ -17,27 +17,25 @@ output: html_document
 <div class="row" style="padding-top: 30px;">
 <div class="col-sm-6">
 
-# **My Lab Journal**
+# **Ecologia numérica**
 
-This is a template example for lab journaling. Students in Matt Crump's Human Cognition and Performance Lab will use this template to learn R, and other things. Students can replace this text with more fun things. People not in my lab can use this too.
+Site destinado para o contéudo da disciplina de **EC ECOLOGIA NUMÉRICA** no semestre letivo de **2020.1 REMOTO**, ministrada pelos docentes José Roberto Botelho de Souza e Felipe Pimentel Lopes de Melo. Com o objetivo de organizar e armazenar o **2° bloco** da disciplina com Felipe Pimentel Lopes de Melo (início: 23/03/2021) - (aulas e exercícios)
 
-## How to use
+## Site
 
-1. fork the repo for this website and follow instructions on read me to get set up. [https://github.com/CrumpLab/LabJournalWebsite](https://github.com/CrumpLab/LabJournalWebsite)
+1. Link do repositório utilizado neste site, para obter basta fazer um fork [https://github.com/CrumpLab/LabJournalWebsite](https://github.com/CrumpLab/LabJournalWebsite)
 
-2. Blog/journal what you are doing in R, by editing the Journal.Rmd. See the [Journal page](https://crumplab.github.io/LabJournalWebsite/Journal.html) for an example of what to do to get started learning R.
+2. O arquivo base para escrever e editar os exercícios foi o **Journal.Rmd**.
 
-3. See the [links page](https://crumplab.github.io/LabJournalWebsite/Links.html) for lots of helpful links on learning R.
+3. Alguns [links](https://crumplab.github.io/LabJournalWebsite/Links.html) importantes que ensinam como usar o software R e Rstudio.
 
-4. Change everything to make it your own.
-
+4. Link do GitHub [aqui](https://github.com/amandaluizat)
 
 </div>
 <div class="col-sm-6">
 
-### [Crump Lab: Human Cognition and Performance](https://crumplab.github.io)
+### [Base para as aulas, ementa, links e exercícios da disciplina](https://fplmelo.github.io/eco_numerica/plano_ensino.html)
 
-<a href = "https://crumplab.github.io">
-![](images/logo.png)
+![](C:/Users/amand/OneDrive/Imagens/abundanciaxespecie.jpg)
 </a>
 </div>
