@@ -1,0 +1,173 @@
+---
+title: "Medidas de associação"
+author: "Amanda Luiza"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '1'
+  html_document:
+    toc: yes
+    toc_float: yes
+    collapsed: no
+    number_sections: no
+    toc_depth: 1
+---
+
+```{r}
+getwd()
+
+load("C:/Users/amand/Documents/RStudio/Ecologia numerica/Felipe (GitHub)/econum/NEwR-2ed_code_data/NEwR2-Data/Doubs.RData")
+
+```
+
+#Medidas de associação
+
+```{r pacotes_dados, warning=FALSE, message=FALSE, error=FALSE, echo=TRUE}
+library(tidyverse)
+library(rmarkdown)
+```
+
+##1.Pergunta "hipotética sobre a organização da comunidade de peixes.
+
+Dando continuidade e com base na linha de raciocínio que apliquei no exercício de Base de dados ecológicos. Acredito que o nitrogênio e o oxigênio influenciam em maior grau a abundância dos peixes ao longo do rio, e por já ser de conhecimento que ambientes eutotrofizados apresentam pouco oxigênio e grande quantidade de nutrientes. Dessa forma, vou dividir o rio com base na eutotrofização. 
+
+```{r}
+eutrof<-data.frame(seq(1:30), env$nit, env$oxy)
+eutrof<-rename(eutrof, "Amostras"=seq.1.30., "Nitrogênio"=env.nit, "Oxigênio"=env.oxy)
+paged_table(eutrof)
+summary(eutrof)
+```
+
+Agora que é possível visualizar a média de cada variável, vou criar uma coluna referente a eutotrofização. Mas para isso, vou dividir em 3 categorias de ambientes: ambientes estáveis `Estáveis`, onde os níveis de oxigênio são altos *(>9.6)* e os níveis de nitrogênio são baixos *(<1.6)*, ambientes eutotrofizados `Eutrofizados`, onde os níveis de oxigênio são baixos *(<9.0)* e os níveis de nitrogênio são altos *(>1.7)*, e por fim, os ambientes de transição `Transição`, onde os níveis de oxigênio e nitrogênio podem ser ambos baixos *(respectivamente, <9.0 e <1.6)*, também podem ser altos *(respectivamente, >9.6 e >1.7)*, como também podem ter seus valores próximos à média *(respectivamente, oxigênio entre 9.0 e 9.6 e nitrogênio entre 1.6 e 1.7)*.
+
+```{r}
+eutrof$pol<-c(rep("Estáveis", 4), rep("Transição",1), rep("Estáveis", 2), rep("Transição",2), rep("Estáveis",6),
+                   rep("Transição",5), rep("Eutrofizados", 1), rep("Transição",1), rep("Eutrofizados",6), rep("Transição",1),
+                   rep("Eutrofizados",1))
+paged_table(eutrof)
+```
+
+Assim, o questionamento que surge é:
+Qual é o grau de similaridade entre as comunidades de peixes nos diferentes estágios ambientais (estáveis, eutrofizados e de transição)?
+
+
+##2.Cálculo das matrizes de distância da comunidade biológica usando índices de Sorensen ou Jaccard e alguma medida de distância (euclidiana ou outra qualquer que a função _vegdist_ possa calcular).
+
+Unindo o conjunto de dados ambientais `eutrof$pol` e a comunidade de peixes.
+
+```{r}
+spe$Amostras<-eutrof$Amostras
+spe$pol<-eutrof$pol
+spe$pol<-as.factor(spe$pol)
+spe<-spe[-8,] #Retirando pois temos somente zeros nessa linha
+```
+
+E agora, calculando os índices de similaridade. 
+
+```{r}
+require(vegan)
+
+jac_comm<-vegdist(spe[,c(-28,-29)], method = "jaccard") #Somente para variáveis numéricas
+jac_comm #Valores estão entre 0 e 1 
+
+mean(jac_comm) #Esse é o valor médio da similaridade de jaccard entre todas as combinações possíveis
+
+library(usedist)
+mean(dist_subset(jac_comm, c(1:8))) #Pega as primeiras 9 linhas da matriz e calcula a similaridade média. Isso equivale a similaridade do ambiente estável.
+
+mean(dist_subset(jac_comm, c(9:18))) #Agora para o ambiente eutrofizado
+
+mean(dist_subset(jac_comm, c(19:28))) #Agora para o ambinte em transição
+
+
+clust_jac_comm<-hclust(jac_comm, method = "complete")
+clust_graf<-plot(clust_jac_comm, hang=-1)
+
+clust_graf
+```
+
+
+##3.Gráfico dos resultados, algumas explicações hipotéticas da hipotese e comentários dos resultados. 
+
+Acredito que ambientes eutotrofizados e de transição sejam mais similares entre si.
+
+```{r}
+require(dendextend) #Pacote necessário para colorir as pontas dos ramos do dendograma
+clust_ambientes<-as.dendrogram(clust_jac_comm) #Transformando o cluster num objeto para poder editar
+colors<-c("#013734","#BB5200", "#3F1339") #Definindo as cores que serão usadas
+colorCode<-c("Estáveis"=colors[1], "Eutrofizados"=colors[2], "Transição"=colors[3])
+labels_colors(clust_ambientes) <- colorCode[eutrof$pol][order.dendrogram(clust_ambientes)]
+
+plot(clust_ambientes)
+
+```
+
+
+```{r}
+#Indice de similaridade usadando distâncias euclidianas
+
+euc_comm<-vegdist(spe[,c(-28,-29)], method = "euclidean")
+clust_euc_comm<-hclust(euc_comm, method = "complete")
+
+mean(euc_comm)
+library(usedist)
+mean(dist_subset(euc_comm, c(1:8))) 
+
+mean(dist_subset(euc_comm, c(9:18))) 
+
+mean(dist_subset(euc_comm, c(19:28))) 
+```
+
+```{r}
+clust_ambientes_euc<-hclust(euc_comm, method = "complete")
+clust_graf_euc<-plot(clust_ambientes_euc, hang=-1)
+
+clust_ambientes_euc2<-as.dendrogram(clust_ambientes_euc)
+colors<-c("#013734","#BB5200", "#3F1339")
+colorCode<-c("Estáveis"=colors[1], "Eutrofizados"=colors[2], "Transição"=colors[3])
+labels_colors(clust_ambientes_euc2) <- colorCode[eutrof$pol][order.dendrogram(clust_ambientes_euc2)]
+
+plot(clust_ambientes_euc2)
+```
+
+Aplicando na matriz ambiental
+
+```{r}
+env[,-c(1,2,3,4,5,6,7,12)] #Retirei as colunas que não me interessavam analisar,deixando apenas as variáveis de nitrogênio, oxigênio e quis ver como se comporta a amônia também. 
+```
+
+```{r}
+env_dist<-vegdist(env[,-c(1,4,12)], method = "euclidean")
+env_dist
+
+mean(env_dist)
+mean(dist_subset(env_dist, c(1:8)))
+mean(dist_subset(env_dist, c(9:18)))
+mean(dist_subset(env_dist, c(19:28)))
+```
+
+Por fim!
+
+```{r}
+clust_env_euc<-hclust(env_dist, method = "complete")
+clust_graf_env_euc<-plot(clust_env_euc, hang=-1)
+
+clust_graf_env_euc2<-as.dendrogram(clust_env_euc)
+colors<-c("#013734","#BB5200", "#3F1339")
+colorCode<-c("Estáveis"=colors[1], "Eutrofizados"=colors[2], "Transição"=colors[3])
+labels_colors(clust_graf_env_euc2) <- colorCode[eutrof$pol][order.dendrogram(clust_graf_env_euc2)]
+
+plot(clust_graf_env_euc2)
+
+```
+
+
+##4.Tentando explicar o fenômeno biológico encontrado.
+
+Concluindo, foi possível notar que independente do método usado para calcular a similaridade, a suposição de que as comunidades de peixes apresentariam diferenças de acordo com o grau de eutotrofização no ambiente, não foi corroborada. 
+
+As comunidades em ambientes estáveis tem as comunidades de ambientes eutotrofizados como grupo irmão, de acordo com o índice de Jaccard. Também, a comunidade 1 foi caracterizada como distinta de todo as as demais comunidades. 
+
+Já quando utilizamos o índide de distância euclidiana, não houve esse problema. Além disso, ambientes estáveis formaram praticamente um clado único, contendo ambientes de transição como grupo irmão. E juntos, apresentavam maior similaridade com os ambientes eutotrofizados.
+
+Dessa forma, a hipótese proposta é correta no que diz respeito o uso do índice de similaridade com distâncias euclidinas. Que mostra que existe um clado único composto pelas comunidades de ambientes de transição e eutotrofizados. Mas,  entretanto, vale ressaltar que esse relação não pode ser considerada para todos os ambientes amostrados. Portanto, não pode ser generalizada nos dados usados. 
