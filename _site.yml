@@ -1,0 +1,25 @@
+name: "Ecologia numerica"
+output_dir: "docs"
+output:  
+  html_document:  
+    self_contained: no  
+    theme: flatly
+navbar:
+  title: "Ecologia numerica"
+  left:
+    - text: "Inicio"
+      href: index.html
+    - text: "Exercecios"
+      menu:
+        - text: "Bases de dados"
+          href: base_dados.html
+        - text: "---------"
+        - text: "Medidades de associacao"
+          href: med_assoc.html
+        - text: "---------"
+        - text: "Analises de Clusters"
+          href: analises_clusters.html
+        - text: "---------"
+        - text: "Analises de ordenamento - PCA"
+          href: PCA.html
+        - text: "---------"

@@ -1,0 +1,137 @@
+---
+title: "Análises de Clusters"
+author: "Amanda Luiza"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '1'
+  html_document:
+    toc: yes
+    toc_float: yes
+    collapsed: no
+    number_sections: no
+    toc_depth: 1
+---
+
+```{r setup, include=FALSE}
+getwd()
+
+
+load("C:/Users/amand/Documents/RStudio/Ecologia numerica/Felipe (GitHub)/econum/NEwR-2ed_code_data/NEwR2-Data/Doubs.RData")
+
+library(tidyverse)
+library(rmarkdown)
+```
+
+Primeiro  vou agrupar a comunidade de peixes usando medidas de distância e métodos de agrupamento diferentes.
+
+Jaccard:
+```{r}
+spe<-spe[-8,]
+
+require(vegan)
+spe_comm<-vegdist(spe, method = "jaccard")
+clust_spe_comm<-hclust(spe_comm, method = "complete")
+plot(clust_spe_comm, hang=-1)
+
+spe_comm1<-vegdist(spe, method = "jaccard")
+clust_spe_comm1<-hclust(spe_comm1, method = "ward.D")
+plot(clust_spe_comm1, hang=-1)
+```
+
+Euclidiana:
+
+```{r}
+spe_comm2<-vegdist(spe, method = "euclidean")
+clust_spe_comm2<-hclust(spe_comm2, method = "complete")
+plot(clust_spe_comm2, hang=-1)
+
+spe_comm3<-vegdist(spe, method = "euclidian")
+clust_spe_comm3<-hclust(spe_comm3, method = "ward.D")
+plot(clust_spe_comm3, hang=-1)
+```
+
+Temos as comunidades de peixes agrupadas por similaridades entre as amostras. Com isso, é possível visualizar que o agrupamento por ward.D interfere mais quando usamos medidas de Jaccard para calcular a distância, comparado quando usamos distâncias euclidianas. 
+
+Agora acrescentando as variávies independentes `env`. 
+
+Ainda com base no objetivo de tentar entender a comunidade de peixes a partir da eutotrofização, vou trabalhar com o nitrogênio, oxigênio e o fósforo, para medir se o rio apresenta um gradiente de ambientes em relação a eutotrofização.
+
+Aqui, utilizo o método não hierárquico, pois quando não sabemos se a esturura dos dados permite ou não reconhecer grupos, usamos o K-means. 
+
+```{r}
+paged_table(env)
+
+k3<-kmeans(env[,-c(1:6,9,11)], centers = 3, nstart=100)
+k3
+library(factoextra)
+fviz_cluster(k3, data = env[,-c(1:6,9,11)])
+```
+
+Seguindo a hipotése de que existem ao menos três padrões em relação as medidas de nitrogênio, oxigênio e fósforo, os padrões seriam correspondentes aos ambientes estáveis, ambientes eutotrofizados e ambientes de transição.
+
+Contudo as análises gráficas demonstrou que o número de clusters mais adequado seriam dois.
+
+Como já é de conhecimento que para avaliar a qualidade de um cluster, basta saber se a distância entre os pares dentro do grupo é menor que entre os grupos.
+
+```{r}
+fviz_nbclust(env[,-c(1:6,9,11)], kmeans, method = "silhouette")
+```
+
+Dessa forma, refazendo o kmeans para visualizar agora apenas com dois clusters. Correspondentes as regiões eutrofizadas e regiões estáveis, respectivamente.
+
+```{r}
+k2<-kmeans(env[,-c(1:6,9,11)], centers = 2, nstart=100)
+fviz_cluster(k2, data = env[,-c(1:6,9,11)])
+```
+
+O agrupamento dos clusters no rio são agrupados dessa forma:
+
+```{r}
+spa %>% 
+  mutate(cluster=k2$cluster)->spa
+
+ggplot(spa, aes(x=X, y=Y, col=as.factor(cluster)))+
+  geom_point()+
+  scale_color_discrete(name = "Gradiente",
+                       labels = c("Eutotrofizado", "Estáveis"))
+```
+
+Ou melhor representada:
+
+Plot dos Clusters
+
+```{r}
+plot (spa, asp=, type ="n", main = "Clusters",
+xlab= "X coordinate (Km)", ylab= "Y coordinate (Km)")
+lines (spa, col="light blue")
+text (50, 20, "Nascente", cex-1.2, col-"red")
+text (25, 215, "Foz", cex=1.2, col-"red")
+```
+
+
+Analisando o gradiente ambiental com boxplot em cada localidade para entender as diferenças gráficas observadas entre os pontos.
+
+```{r}
+env[,-c(1:6,9,11)]->env
+env %>% 
+  mutate(cluster=k2$cluster)->env
+
+ggplot(env, aes(x=as.factor(cluster), y=oxy))+
+  geom_boxplot(alpha=0.3)->plot4
+ggplot(env, aes(x=as.factor(cluster), y=nit))+
+  geom_boxplot(alpha=0.3)->plot5
+ggplot(env, aes(x=as.factor(cluster), y=pho))+
+  geom_boxplot(alpha=0.3)->plot6
+
+library(ggpubr)
+ggarrange(plot4, plot5, plot6, ncol = 1, nrow = 3)
+```
+
+Concluindo:
+
+Após análises mais completas e específicas de agrupamento, foi possível conlcuir que a hipótese inicial de que o rio era agrupado em 3 regiões distintas (estável, eutrofizado e de transição), de acordo com o grau de eutotrofização, não era totalmente verdadeira. Sendo observada somente duas distinções, onde a 1 seria uma região eutrofizada e a região 2, seria a região mais estável. 
+
+A eutrofização é caracterizada pelo aumento de nutrientes, especialmente fósforo e nitrogênio, o que provoca um surgimento excessivo de organismos como algas e cianobactérias. Dessa forma, um ambiente eutrofizado acaba adquirindo uma coloração turva e a quantidade de oxigênio diminui, o que causa a morte de várias espécies, que neste estudo o foco é ação sobre os peixes. 
+
+
